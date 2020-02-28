@@ -1,10 +1,10 @@
 from train import *
 from experiment_conf import *
 
-def build_cigan(type_):
-    load_name = type_
+def build_cigan(type_,lr):
+    load_name = "{}{:.1e}".format(type_,lr)
     # new model save name
-    save_name = type_
+    save_name = "{}{:.1e}".format(type_,lr)
      # load GAN model weights
     load_weights = False
     # save new model?
@@ -24,7 +24,7 @@ def experiment_opt(type_):
     for learn_rate in lr:
         print("Begin : ",learn_rate)
         opt = tf.train.RMSPropOptimizer(learning_rate=learn_rate)
-        model = build_cigan(type_)
+        model = build_cigan(type_,learn_rate)
         model.build_model()
         model.set_new_optimizer(opt)
         results = model.train_model()
@@ -43,7 +43,9 @@ if __name__ == '__main__':
     # model name to load?
     #first model 
     # only validating the model
-    loss = ["dcgan","mammo"]
+    #1 test : loss = ["dcgan","mammo"]
+    #2 test : loss = ["wgan","lsgan"]
+    loss = ["wgan","lsgan"]
     for i in loss: 
         #test RMSPROP
         print(i)

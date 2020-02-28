@@ -80,6 +80,20 @@ class CiGAN:
             #(Wasserstein GAN)
             self.G_loss = -tf.reduce_mean(self.D_logits_fake)
             self.D_loss = tf.reduce_mean(self.D_logits_fake) - tf.reduce_mean(self.D_logits_real)
+            ## add article
+            # L1 and boundary loss --loss for generator
+            self.L1_loss = self.l1_factor * \
+                        tf.reduce_mean(tf.abs(self.alpha *
+                        tf.multiply(self.input_mask, self.fake_image - self.input_real)) +
+                        tf.abs((1 - self.alpha) *
+                        tf.multiply(1 - self.input_mask, self.fake_image - self.input_real)))
+            self.boundary_loss = self.boundary_factor * tf.reduce_mean(tf.multiply(self.input_boundary, \
+                                                                                   tf.abs(self.fake_image - self.input_real)))
+            
+            #add all losses
+            self.G_loss += self.G_loss_vgg
+            self.G_loss += self.L1_loss
+            self.G_loss += self.boundary_loss
         
         elif self.type =="lsgan":
             #(lsgan)
@@ -87,6 +101,21 @@ class CiGAN:
             D_loss_real = tf.reduce_mean(tf.nn.l2_loss(self.D_logits_real - tf.ones_like(self.D_logits_real))) 
             D_loss_fake = tf.reduce_mean(tf.nn.l2_loss(self.D_logits_fake - tf.zeros_like(self.D_logits_fake))) 
             self.D_loss = D_loss_real + D_loss_fake
+            
+            ##add article
+            # L1 and boundary loss --loss for generator
+            self.L1_loss = self.l1_factor * \
+                        tf.reduce_mean(tf.abs(self.alpha *
+                        tf.multiply(self.input_mask, self.fake_image - self.input_real)) +
+                        tf.abs((1 - self.alpha) *
+                        tf.multiply(1 - self.input_mask, self.fake_image - self.input_real)))
+            self.boundary_loss = self.boundary_factor * tf.reduce_mean(tf.multiply(self.input_boundary,\
+                                                                                   tf.abs(self.fake_image - self.input_real)))
+            
+            #add all losses
+            self.G_loss += self.G_loss_vgg
+            self.G_loss += self.L1_loss
+            self.G_loss += self.boundary_loss
         
         elif self.type == "dcgan":
              #advesarial loss (sigmoid cross entropy)
@@ -109,7 +138,8 @@ class CiGAN:
                         tf.multiply(self.input_mask, self.fake_image - self.input_real)) +
                         tf.abs((1 - self.alpha) *
                         tf.multiply(1 - self.input_mask, self.fake_image - self.input_real)))
-            self.boundary_loss = self.boundary_factor * tf.reduce_mean(tf.multiply(self.input_boundary, tf.abs(self.fake_image - self.input_real)))
+            self.boundary_loss = self.boundary_factor * tf.reduce_mean(tf.multiply(self.input_boundary, \ 
+                                                                                   tf.abs(self.fake_image - self.input_real)))
             
             #add all losses
             self.G_loss += self.G_loss_vgg
