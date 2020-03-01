@@ -18,8 +18,7 @@ def build_cigan(type_,lr):
                   load_weights=load_weights,l1_factor = l1_factor, type = type_,
                   save_model = False)
 
-def experiment_opt(type_):
-    lr = np.linspace(1e-5,1e-4,10)
+def experiment_opt(type_,lr):
     data = []
     for learn_rate in lr:
         print("Begin : ",learn_rate)
@@ -45,10 +44,17 @@ if __name__ == '__main__':
     # only validating the model
     #1 test : loss = ["dcgan","mammo"]
     #2 test : loss = ["wgan","lsgan"]
-    loss = ["wgan","lsgan"]
-    for i in loss: 
+    #loss = ["wgan","lsgan"]
+    #for i in loss: 
+    #    lr = np.linspace(1e-5,1e-4,10)
         #test RMSPROP
-        print(i)
-        experiment_opt(i)
-    
+    #    print(i)
+    #    experiment_opt(i,lr)
+    #3. experiment loss = ["wgan","lsgan","mammo"]
+    loss = ["wgan","lsgan","mammo"]
+    lr = [1e-6]
+    for i in loss: 
+    #test RMSPROP
+        print(i,"exp3")
+        experiment_opt(i,lr)
 
