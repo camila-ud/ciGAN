@@ -95,8 +95,9 @@ class CiGAN:
         
         elif self.type =="lsgan":
             #(lsgan)
+            # test n4 smooth 0.8
             self.G_loss = tf.reduce_mean(tf.nn.l2_loss(self.D_logits_fake - tf.ones_like(self.D_logits_fake))) 
-            D_loss_real = tf.reduce_mean(tf.nn.l2_loss(self.D_logits_real - tf.ones_like(self.D_logits_real))) 
+            D_loss_real = tf.reduce_mean(tf.nn.l2_loss(self.D_logits_real - tf.ones_like(self.D_logits_real)*0.8)) 
             D_loss_fake = tf.reduce_mean(tf.nn.l2_loss(self.D_logits_fake - tf.zeros_like(self.D_logits_fake))) 
             self.D_loss = D_loss_real + D_loss_fake
             

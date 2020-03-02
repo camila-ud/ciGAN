@@ -1,11 +1,17 @@
 from train import *
 from experiment_conf import *
 
-def build_cigan(type_,lr):
-    load_name = "{}{:.1e}".format(type_,lr)
-    # new model save name
-    save_name = "{}{:.1e}".format(type_,lr)
+def build_cigan(type_,lr,name = "model", ot = False):
+    if ot:
+        load_name = "{}{:.1e}{}".format(type_,lr,name)
+        # new model save name
+        save_name = "{}{:.1e}{}".format(type_,lr,name)
      # load GAN model weights
+    else: 
+        load_name = "{}{:.1e}".format(type_,lr)
+        # new model save name
+        save_name = "{}{:.1e}".format(type_,lr)
+        
     load_weights = False
     # save new model?
     new_model = True
@@ -17,6 +23,7 @@ def build_cigan(type_,lr):
                   new_model, train_vgg=train_vgg, load_vgg=load_vgg,
                   load_weights=load_weights,l1_factor = l1_factor, type = type_,
                   save_model = False)
+
 
 def experiment_opt(type_,lr):
     data = []
@@ -52,7 +59,31 @@ if __name__ == '__main__':
     #    experiment_opt(i,lr)
     #3. experiment loss = ["wgan","lsgan","mammo"]
     #loss = ["mammo"]
-    print("mammo","exp3")
-    lr = np.linspace(1e-5,1e-4,10)
-    experiment_opt("mammo",lr)
+    #print("mammo","exp3")
+    #lr = np.linspace(1e-5,1e-4,10)
+    #experiment_opt("mammo",lr)
+    learn_rate = 5e-5
+    opt1 = tf.train.RMSPropOptimizer(learning_rate=learn_rate)
+    opt2 = tf.train.AdamOptimizer(learning_rate=learn_rate)
+    data = []
+    name = ["rms","adam"]
+    for c,opt in enumerate([opt1,opt2]):
+        print("Begin : ")
+        model = build_cigan(type_,learn_rate,name[c],True)
+        model.build_model()
+        model.set_new_optimizer(opt)
+        results = model.train_model()
+        data.append(results)
+    #end experiment
+    data = np.stack(data)
+    print("EXP {} is finished".format(type_))
+    directory = './results/' + model.save_name + '/'
+    
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    np.savez_compressed("{}{}".format(directory,type_),loss = data)
+    print("saved")
+    
+    
+    
 
