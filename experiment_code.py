@@ -51,10 +51,8 @@ if __name__ == '__main__':
     #    print(i)
     #    experiment_opt(i,lr)
     #3. experiment loss = ["wgan","lsgan","mammo"]
-    loss = ["wgan","lsgan","mammo"]
-    lr = [1e-6]
-    for i in loss: 
-    #test RMSPROP
-        print(i,"exp3")
-        experiment_opt(i,lr)
+    #loss = ["mammo"]
+    print("mammo","exp3")
+    lr = np.linspace(1e-5,1e-4,10)
+    experiment_opt("mammo",lr)
 
