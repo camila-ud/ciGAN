@@ -17,10 +17,7 @@ if __name__ == '__main__':
             load_name = 'model_{}'.format(i)
             # new model save name
             save_name = 'model_{}'.format(i)
-            # pretrain with VGG
-<<<<<<< HEAD
-<<<<<<< HEAD
-            
+            # pretrain with VGG            
             train_vgg = False
             # load VGG pre-trained model
             load_vgg = False
@@ -30,26 +27,12 @@ if __name__ == '__main__':
                 #just pretrained one time
                 train_vgg = True
                  # load VGG pre-trained model
-                load_vgg = True
-                
-=======
-            train_vgg = True
-            # load VGG pre-trained model
-            load_vgg = True
->>>>>>> c34e5058343bdda2385c0429ec88da172226af3c
-=======
-            train_vgg = True
-            # load VGG pre-trained model
-            load_vgg = True
->>>>>>> c34e5058343bdda2385c0429ec88da172226af3c
-            # load GAN model weights
+                load_vgg = True# load GAN model weights
             load_weights = False
             # save new model?
             new_model = True
             GAN = CiGAN(save_name, load_name, patch_size, epochs,
                         batch_size, new_model, train_vgg=train_vgg, load_vgg=load_vgg,
-<<<<<<< HEAD
-<<<<<<< HEAD
                         load_weights=load_weights,l1_factor = 600.0, type = i,save_model = False)
 =======
                         load_weights=load_weights,l1_factor = i, save_model = False)
