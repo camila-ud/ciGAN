@@ -8,6 +8,7 @@ from keras.models import Model
 from keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D,Flatten,Dense
 from keras.layers.pooling import AveragePooling2D
 from keras.layers.merge import concatenate
+from keras.layers import BatchNormalization
 from keras.applications.vgg19 import VGG19
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 from keras.optimizers import SGD, Adam, Adagrad, RMSprop
@@ -22,7 +23,7 @@ import scipy.misc as misc
 import scipy.io
 import os
 
-def build_generator(input_x,input_mask,reuse=None):
+def build_generator(input_x,input_mask,reuse=None,batch_normalization=False):
     with tf.variable_scope('gen',reuse=reuse):
         print("Building generator")
         kernels = [128, 128, 64, 64, 32, 32, 32]
@@ -44,9 +45,13 @@ def build_generator(input_x,input_mask,reuse=None):
                 upsampled = tf.image.resize_nearest_neighbor(net, (shape, shape))
                 input = concatenate([input, upsampled], axis=-1)
 
-            shape = int(input.shape[1].value)
+            shape = int(input.shape[1].value)            
             net = Conv2D(filters=kernel, kernel_size=(3,3),padding="same", activation='relu')(input)
             net = Conv2D(filters=kernel, kernel_size=(3,3),padding="same", activation='relu')(net)
+            #test 
+            if batch_normalization:
+                print("batch normalization")
+                net = BatchNormalization()(net)
             print(net.shape)
         output = Conv2D(filters=1, kernel_size=(1,1),activation='relu',padding="same")(net)
         #activation tanh(?)
