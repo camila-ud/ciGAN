@@ -53,11 +53,12 @@ class CiGAN:
         vgg_real = build_vgg19(tf.multiply(self.input_real, self.input_mask))
         vgg_fake = build_vgg19(tf.multiply(self.fake_image, self.input_mask), reuse=True)
         
+        #add importance inside
         G_loss_vgg += tf.reduce_mean(tf.abs(vgg_real['input'] - vgg_fake['input']))
         
         for i in range(1, 4):
             conv_str = 'pool' + str(i)
-            G_loss_vgg += tf.reduce_mean(tf.abs(vgg_real[conv_str] - vgg_fake[conv_str]))
+            G_loss_vgg += 1000*tf.reduce_mean(tf.abs(vgg_real[conv_str] - vgg_fake[conv_str]))
 
         vgg_real = build_vgg19(tf.multiply(self.input_real, self.input_boundary))
         vgg_fake = build_vgg19(tf.multiply(self.fake_image, self.input_boundary), reuse=True)
@@ -65,7 +66,7 @@ class CiGAN:
         G_loss_vgg += tf.reduce_mean(tf.abs(vgg_real['input'] - vgg_fake['input']))
         for i in range(1, 4):
             conv_str = 'pool' + str(i)
-            G_loss_vgg += tf.reduce_mean(tf.abs(vgg_real[conv_str] - vgg_fake[conv_str]))
+            G_loss_vgg += 1000*tf.reduce_mean(tf.abs(vgg_real[conv_str] - vgg_fake[conv_str]))
         return G_loss_vgg
 
 
@@ -115,7 +116,7 @@ class CiGAN:
             self.G_loss += self.G_loss_vgg
             self.G_loss += self.L1_loss
             self.G_loss += self.boundary_loss
-        
+            
         elif self.type == "dcgan":
              #advesarial loss (sigmoid cross entropy)
             self.G_loss = dcgan_function(self.D_logits_fake,tf.ones_like(self.D_logits_fake))
