@@ -66,7 +66,7 @@ class CiGAN:
         G_loss_vgg += tf.reduce_mean(tf.abs(vgg_real['input'] - vgg_fake['input']))
         for i in range(1, 4):
             conv_str = 'pool' + str(i)
-            G_loss_vgg += 1000*tf.reduce_mean(tf.abs(vgg_real[conv_str] - vgg_fake[conv_str]))
+            G_loss_vgg += tf.reduce_mean(tf.abs(vgg_real[conv_str] - vgg_fake[conv_str]))
         return G_loss_vgg
 
 

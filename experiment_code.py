@@ -67,7 +67,7 @@ if __name__ == '__main__':
     opt2 = tf.train.AdamOptimizer(learning_rate=learn_rate)
     data = []
     name = ["rms","adam"]
-    type_ = "lsgan"
+    type_ = "mammo"
     for c,opt in enumerate([opt1,opt2]):
         print("Begin : ")
         model = build_cigan(type_,learn_rate,name[c],True)
