@@ -59,10 +59,7 @@ def build_generator(input_x,input_mask,reuse=None,batch_normalization=False):
         return output
 
 def build_discriminator(input_x,reuse=None,batch_normalization=False):
-    with tf.variable_scope('dis'):
-        if reuse:
-            tf.get_variable_scope().reuse_variables()
-
+    with tf.variable_scope('dis',reuse=tf.AUTO_REUSE):
         weight_init = RandomNormal(mean=0., stddev=0.02)
         x = Input(tensor=input_x)
         print("Building discriminator")

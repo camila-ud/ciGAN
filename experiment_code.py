@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     type_ = "lsgan"
     print("Test with batchnormalization : ")
-    model = build_cigan(type_,5e-5,"rmsbn_100",True)
+    model = build_cigan(type_,5e-5,"rmsbn_bn",True)
     model.build_model(batch_normalization=True)
     results = model.train_model()    
     #end experiment
