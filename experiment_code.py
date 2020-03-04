@@ -16,8 +16,8 @@ def build_cigan(type_,lr,name = "model", ot = False):
     # save new model?
     new_model = True
     # pretrain with VGG            
-    train_vgg = True
-    load_vgg = True
+    train_vgg = False
+    load_vgg = False
 
     return CiGAN(save_name, load_name, patch_size, epochs,batch_size, 
                   new_model, train_vgg=train_vgg, load_vgg=load_vgg,
@@ -65,8 +65,10 @@ if __name__ == '__main__':
 
     type_ = "lsgan"
     print("Test with batchnormalization : ")
-    model = build_cigan(type_,5e-5,"disc_mask",True)
+    opt = tf.train.AdamOptimizer(learning_rate=3e-4)
+    model = build_cigan(type_,3e-4,"disc_mask_a",True)
     model.build_model(batch_normalization=True)
+    model.set_new_optimizer(opt)
     results = model.train_model()    
     #end experiment
     print("EXP {} is finished".format(type_))
