@@ -53,8 +53,8 @@ class CiGAN:
         vgg_real = build_vgg19(tf.multiply(self.input_real, self.input_mask))
         vgg_fake = build_vgg19(tf.multiply(self.fake_image, self.input_mask), reuse=True)
         
-        #add importance inside
-        G_loss_vgg += 100.0 * tf.reduce_mean(tf.abs(vgg_real['input'] - vgg_fake['input']))
+        #add importance inside 100 no mejora
+        G_loss_vgg += tf.reduce_mean(tf.abs(vgg_real['input'] - vgg_fake['input']))
         
         for i in range(1, 4):
             conv_str = 'pool' + str(i)
@@ -201,8 +201,8 @@ class CiGAN:
         self.fake_image = build_generator(self.input_x, self.input_mask,batch_normalization = batch_normalization)
 
         #discriminator
-        self.D_real, self.D_logits_real = build_discriminator(self.input_real)
-        self.D_fake, self.D_logits_fake = build_discriminator(self.fake_image,reuse=True)
+        self.D_real, self.D_logits_real = build_discriminator(self.input_real,batch_normalization = batch_normalization)
+        self.D_fake, self.D_logits_fake = build_discriminator(self.fake_image,reuse=True,batch_normalization = batch_normalization)
      
         #set training variables 
         self.t_vars = tf.trainable_variables()

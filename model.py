@@ -58,7 +58,7 @@ def build_generator(input_x,input_mask,reuse=None,batch_normalization=False):
         print(net.shape, "g_lastconv_"+str(net.shape[1]))
         return output
 
-def build_discriminator(input_x,reuse=None):
+def build_discriminator(input_x,reuse=None,batch_normalization=False):
     with tf.variable_scope('dis'):
         if reuse:
             tf.get_variable_scope().reuse_variables()
@@ -72,8 +72,13 @@ def build_discriminator(input_x,reuse=None):
                             kernel_initializer=weight_init)(x)
         print(x.shape)
         for i in range(1, 5):
-            x = Conv2D(int(numKernels*2**i), (3, 3), padding='same', 
-                                kernel_initializer=weight_init)(x)
+            #x = Conv2D(int(numKernels*2**i), (3, 3), padding='same', 
+            #                    kernel_initializer=weight_init)(x)
+            x = Conv2D(int(numKernels*2**i), (3, 3), padding='same')(x)
+            if batch_normalization:
+               print("batch normalization")
+               x = BatchNormalization()(x)
+
             print(x.shape)
             x = MaxPooling2D(pool_size=2)(x)
             x = LeakyReLU()(x)
