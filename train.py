@@ -54,7 +54,7 @@ class CiGAN:
         vgg_fake = build_vgg19(tf.multiply(self.fake_image, self.input_mask), reuse=True)
         
         #add importance inside
-        G_loss_vgg += tf.reduce_mean(tf.abs(vgg_real['input'] - vgg_fake['input']))
+        G_loss_vgg += 100.0 * tf.reduce_mean(tf.abs(vgg_real['input'] - vgg_fake['input']))
         
         for i in range(1, 4):
             conv_str = 'pool' + str(i)
