@@ -201,8 +201,10 @@ class CiGAN:
         self.fake_image = build_generator(self.input_x, self.input_mask,batch_normalization = batch_normalization)
 
         #discriminator
-        self.D_real, self.D_logits_real = build_discriminator(self.input_real,batch_normalization = batch_normalization)
-        self.D_fake, self.D_logits_fake = build_discriminator(self.fake_image,reuse=True,batch_normalization = batch_normalization)
+        self.D_real, self.D_logits_real = build_discriminator(tf.multiply(self.input_real, self.input_mask),
+								batch_normalization = batch_normalization)
+        self.D_fake, self.D_logits_fake = build_discriminator(tf.multiply(self.fake_image, self.input_mask),
+								reuse=True,batch_normalization = batch_normalization)
      
         #set training variables 
         self.t_vars = tf.trainable_variables()
@@ -225,9 +227,9 @@ class CiGAN:
             # If using existing model
             if not self.new_model:
                 # Load the VGG loss trained model (model pretrain in model_wgan_vgg)
-                if self.load_vgg and tf.train.checkpoint_exists(models_dir + 'model_wgan' + '_vgg'):
+                if self.load_vgg and tf.train.checkpoint_exists(models_dir + self.load_name + '_vgg'):
                     print('Loading vgg')
-                    self.g_saver.restore(self.sess, models_dir + 'model_wgan' + '_vgg')
+                    self.g_saver.restore(self.sess, models_dir + self.load_name + '_vgg')
                 # Load the GAN loss trained model
                 elif self.load_name is not None and self.load_weights:
                     print('Loading model', self.load_name)

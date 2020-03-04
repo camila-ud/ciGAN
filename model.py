@@ -69,9 +69,8 @@ def build_discriminator(input_x,reuse=None,batch_normalization=False):
                             kernel_initializer=weight_init)(x)
         print(x.shape)
         for i in range(1, 5):
-            #x = Conv2D(int(numKernels*2**i), (3, 3), padding='same', 
-            #                    kernel_initializer=weight_init)(x)
-            x = Conv2D(int(numKernels*2**i), (3, 3), padding='same')(x)
+            x = Conv2D(int(numKernels*2**i), (3, 3), padding='same', 
+                                kernel_initializer=weight_init)(x)
             if batch_normalization:
                print("batch normalization")
                x = BatchNormalization()(x)
