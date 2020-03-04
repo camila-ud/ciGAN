@@ -1,0 +1,7 @@
+self.G_solver = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.G_loss,
+                                            var_list=self.g_vars,global_step=self.global_step) 
+            self.D_solver = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.D_loss,
+                                            var_list=self.d_vars,global_step=self.global_step)
+
+Despues de varios test se deja este optimizador por defecto
+Se agrega batchnormalization porque despues de todos los test, no se orbservan cambios en calidad de las imagenes. Puede ser por culpa de la penalizacion hecha a pequenos detalles a travez de la red. En las primeras epocs de vgg, los resultados mejoran

@@ -16,8 +16,8 @@ def build_cigan(type_,lr,name = "model", ot = False):
     # save new model?
     new_model = True
     # pretrain with VGG            
-    train_vgg = False
-    load_vgg = False
+    train_vgg = True
+    load_vgg = True
 
     return CiGAN(save_name, load_name, patch_size, epochs,batch_size, 
                   new_model, train_vgg=train_vgg, load_vgg=load_vgg,
@@ -62,26 +62,19 @@ if __name__ == '__main__':
     #print("mammo","exp3")
     #lr = np.linspace(1e-5,1e-4,10)
     #experiment_opt("mammo",lr)
-    learn_rate = 5e-5
-    opt1 = tf.train.RMSPropOptimizer(learning_rate=learn_rate)
-    opt2 = tf.train.AdamOptimizer(learning_rate=learn_rate)
-    data = []
-    name = ["rms","adam"]
-    for c,opt in enumerate([opt1,opt2]):
-        print("Begin : ")
-        model = build_cigan(type_,learn_rate,name[c],True)
-        model.build_model()
-        model.set_new_optimizer(opt)
-        results = model.train_model()
-        data.append(results)
+
+    type_ = "lsgan"
+    print("Test with batchnormalization : ")
+    model = build_cigan(type_,5e-5,"rmsbn_100",True)
+    model.build_model(batch_normalization=True)
+    results = model.train_model()    
     #end experiment
-    data = np.stack(data)
     print("EXP {} is finished".format(type_))
     directory = './results/' + model.save_name + '/'
     
     if not os.path.exists(directory):
         os.makedirs(directory)
-    np.savez_compressed("{}{}".format(directory,type_),loss = data)
+    np.savez_compressed("{}{}".format(directory,type_),loss = results)
     print("saved")
     
     

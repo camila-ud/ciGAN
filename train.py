@@ -53,10 +53,12 @@ class CiGAN:
         vgg_real = build_vgg19(tf.multiply(self.input_real, self.input_mask))
         vgg_fake = build_vgg19(tf.multiply(self.fake_image, self.input_mask), reuse=True)
         
-        G_loss_vgg += tf.reduce_mean(tf.abs(vgg_real['input'] - vgg_fake['input']))
+        #add importance inside
+        G_loss_vgg += 100.0 * tf.reduce_mean(tf.abs(vgg_real['input'] - vgg_fake['input']))
         
         for i in range(1, 4):
             conv_str = 'pool' + str(i)
+            #add importance ?
             G_loss_vgg += tf.reduce_mean(tf.abs(vgg_real[conv_str] - vgg_fake[conv_str]))
 
         vgg_real = build_vgg19(tf.multiply(self.input_real, self.input_boundary))
@@ -115,7 +117,7 @@ class CiGAN:
             self.G_loss += self.G_loss_vgg
             self.G_loss += self.L1_loss
             self.G_loss += self.boundary_loss
-        
+            
         elif self.type == "dcgan":
              #advesarial loss (sigmoid cross entropy)
             self.G_loss = dcgan_function(self.D_logits_fake,tf.ones_like(self.D_logits_fake))
@@ -165,9 +167,10 @@ class CiGAN:
                                             var_list=self.d_vars,global_step=self.global_step)
 
         elif self.type == 'lsgan':
-            self.G_solver = tf.train.AdamOptimizer(learning_rate=1e-3, beta1=0.5).minimize(self.G_loss,
+            #best after different tests
+            self.G_solver = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.G_loss,
                                             var_list=self.g_vars,global_step=self.global_step) 
-            self.D_solver = tf.train.AdamOptimizer(learning_rate=1e-3, beta1=0.5).minimize(self.D_loss,
+            self.D_solver = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.D_loss,
                                             var_list=self.d_vars,global_step=self.global_step)
         elif self.type == "mammo":
             self.learn_rate = tf.train.exponential_decay(1e-4, self.global_step,
@@ -184,7 +187,7 @@ class CiGAN:
         self.D_solver = optimizer.minimize(self.D_loss,
                                                 var_list=self.d_vars,global_step=self.global_step)
     
-    def build_model(self):
+    def build_model(self,batch_normalization = False):
          # Learning rate params
         self.global_step = tf.Variable(0, trainable=False)        
         #self.learn_rate = learn_rate
@@ -195,7 +198,7 @@ class CiGAN:
         self.input_boundary = tf.placeholder(tf.float32, [None, self.patch_size, self.patch_size, 1])
         
         #generator
-        self.fake_image = build_generator(self.input_x, self.input_mask)
+        self.fake_image = build_generator(self.input_x, self.input_mask,batch_normalization = batch_normalization)
 
         #discriminator
         self.D_real, self.D_logits_real = build_discriminator(self.input_real)
