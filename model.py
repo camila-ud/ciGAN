@@ -101,8 +101,11 @@ def build_vgg19(input,reuse=False):
         net = {}
         vgg_rawnet = scipy.io.loadmat('VGG_Model/imagenet-vgg-verydeep-19.mat')
         vgg_layers = vgg_rawnet['layers'][0]
-
-        net['input'] = K.repeat_elements(input*255.-127.5,3,3)
+        #images are normalized, in tf we use -1 tot 1
+        input /= 0.5
+        input -= 1.
+        
+        net['input'] = K.repeat_elements(input,3,3)
         net['conv1_1'] = build_vgg_net('conv', net['input'], get_weight_bias(vgg_layers,0), name='vgg_conv1_1')
         net['conv1_2'] = build_vgg_net('conv', net['conv1_1'], get_weight_bias(vgg_layers,2), name='vgg_conv1_2')
         net['pool1'] = build_vgg_net('pool', net['conv1_2'])
