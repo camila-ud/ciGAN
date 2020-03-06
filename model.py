@@ -58,8 +58,8 @@ def build_generator(input_x,input_mask,reuse=None,batch_normalization=False):
         print(net.shape, "g_lastconv_"+str(net.shape[1]))
         return output
 
-def build_discriminator(input_x,reuse=None,batch_normalization=False):
-    with tf.variable_scope('dis',reuse=tf.AUTO_REUSE):
+def build_discriminator(input_x,reuse=None):
+    with tf.variable_scope('dis',reuse=reuse):
         weight_init = RandomNormal(mean=0., stddev=0.02)
         x = Input(tensor=input_x)
         print("Building discriminator")
