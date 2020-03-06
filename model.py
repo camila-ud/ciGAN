@@ -53,7 +53,7 @@ def build_generator(input_x,input_mask,reuse=None,batch_normalization=False):
                 print("batch normalization")
                 net = BatchNormalization()(net)
             print(net.shape)
-        output = Conv2D(filters=1, kernel_size=(1,1),activation='relu',padding="same")(net)
+        output = Conv2D(filters=1, kernel_size=(1,1),activation='tanh',padding="same")(net)
         #activation tanh(?)
         print(net.shape, "g_lastconv_"+str(net.shape[1]))
         return output
@@ -71,10 +71,6 @@ def build_discriminator(input_x,reuse=None,batch_normalization=False):
         for i in range(1, 5):
             x = Conv2D(int(numKernels*2**i), (3, 3), padding='same', 
                                 kernel_initializer=weight_init)(x)
-            if batch_normalization:
-               print("batch normalization")
-               x = BatchNormalization()(x)
-
             print(x.shape)
             x = MaxPooling2D(pool_size=2)(x)
             x = LeakyReLU()(x)
