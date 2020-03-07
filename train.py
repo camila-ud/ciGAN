@@ -105,17 +105,18 @@ class CiGAN:
             
             ##add article
             # L1 and boundary loss --loss for generator
-            self.L1_loss = self.l1_factor * \
+            """self.L1_loss = self.l1_factor * \
                         tf.reduce_mean(tf.abs(self.alpha *
                         tf.multiply(self.input_mask, self.fake_image - self.input_real)) +
                         tf.abs((1 - self.alpha) *
                         tf.multiply(1 - self.input_mask, self.fake_image - self.input_real)))
+            """
             self.boundary_loss = self.boundary_factor * tf.reduce_mean(tf.multiply(self.input_boundary,
                                                                                    tf.abs(self.fake_image - self.input_real)))
             
             #add all losses
             self.G_loss += self.G_loss_vgg
-            self.G_loss += self.L1_loss
+            #self.G_loss += self.L1_loss
             self.G_loss += self.boundary_loss
             
         elif self.type == "dcgan":
@@ -225,9 +226,9 @@ class CiGAN:
             # If using existing model
             if not self.new_model:
                 # Load the VGG loss trained model (model pretrain in model_wgan_vgg)
-                if self.load_vgg and tf.train.checkpoint_exists(models_dir + 'lsgan5.0e-05rmsbn_bn' + '_vgg'):
+                if self.load_vgg and tf.train.checkpoint_exists(models_dir + 'lsgan5.0e-05' + '_vgg'):
                     print('Loading vgg')
-                    self.g_saver.restore(self.sess, models_dir + 'lsgan5.0e-05rmsbn_bn' + '_vgg')
+                    self.g_saver.restore(self.sess, models_dir + 'lsgan5.0e-05' + '_vgg')
                 # Load the GAN loss trained model
                 elif self.load_name is not None and self.load_weights:
                     print('Loading model', self.load_name)
