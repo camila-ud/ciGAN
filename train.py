@@ -33,7 +33,7 @@ class CiGAN:
         self.VGG_solver = self.boundary_loss = self.boundary_solver = self.L1_loss = self.L1_solver = None
 
         # L1 and boundary loss params
-        self.alpha = 0.9
+        self.alpha = 0.95
         self.l1_factor = l1_factor
         self.boundary_factor = 1200.0
         self.save_model = save_model
@@ -76,26 +76,7 @@ class CiGAN:
         #loss function pretraining
         self.G_loss_vgg = self.vgg_loss() 
         
-        if self.type == "wgan":
-            #(Wasserstein GAN)
-            self.G_loss = -tf.reduce_mean(self.D_logits_fake)
-            self.D_loss = tf.reduce_mean(self.D_logits_fake) - tf.reduce_mean(self.D_logits_real)
-            ## add article
-            # L1 and boundary loss --loss for generator
-            self.L1_loss = self.l1_factor * \
-                        tf.reduce_mean(tf.abs(self.alpha *
-                        tf.multiply(self.input_mask, self.fake_image - self.input_real)) +
-                        tf.abs((1 - self.alpha) *
-                        tf.multiply(1 - self.input_mask, self.fake_image - self.input_real)))
-            self.boundary_loss = self.boundary_factor * tf.reduce_mean(tf.multiply(self.input_boundary, 
-                                                                                   tf.abs(self.fake_image - self.input_real)))
-            
-            #add all losses
-            self.G_loss += self.G_loss_vgg
-            self.G_loss += self.L1_loss
-            self.G_loss += self.boundary_loss
-        
-        elif self.type =="lsgan":
+        if self.type =="lsgan":
             #(lsgan)
             # test n4 smooth 0.8
             self.G_loss = tf.reduce_mean(tf.nn.l2_loss(self.D_logits_fake - tf.ones_like(self.D_logits_fake))) 
@@ -105,18 +86,18 @@ class CiGAN:
             
             ##add article
             # L1 and boundary loss --loss for generator
-            """self.L1_loss = self.l1_factor * \
+            self.L1_loss = self.l1_factor * \
                         tf.reduce_mean(tf.abs(self.alpha *
                         tf.multiply(self.input_mask, self.fake_image - self.input_real)) +
                         tf.abs((1 - self.alpha) *
                         tf.multiply(1 - self.input_mask, self.fake_image - self.input_real)))
-            """
+            
             self.boundary_loss = self.boundary_factor * tf.reduce_mean(tf.multiply(self.input_boundary,
                                                                                    tf.abs(self.fake_image - self.input_real)))
             
             #add all losses
             self.G_loss += self.G_loss_vgg
-            #self.G_loss += self.L1_loss
+            self.G_loss += self.L1_loss
             self.G_loss += self.boundary_loss
             
         elif self.type == "dcgan":
@@ -152,20 +133,13 @@ class CiGAN:
            
     def set_optimizer(self):
         # Set pretrained Parameter by default ( articles)
-        self.VGG_solver = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(self.G_loss_vgg, 
-                                            global_step=self.global_step, var_list=self.g_vars)
-
-        if self.type == 'wgan':
-            self.G_solver = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.G_loss,
-                                                var_list=self.g_vars,global_step=self.global_step)
-            self.D_solver = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.D_loss,
-                                                var_list=self.d_vars,global_step=self.global_step)
-        
-        elif self.type == 'dcgan':
+        if self.type == 'dcgan':
             self.G_solver = tf.train.AdamOptimizer(learning_rate=2e-4, beta1=0.5).minimize(self.G_loss,
                                             var_list=self.g_vars,global_step=self.global_step)
             self.D_solver = tf.train.AdamOptimizer(learning_rate=2e-4, beta1=0.5).minimize(self.D_loss,
                                             var_list=self.d_vars,global_step=self.global_step)
+            self.VGG_solver = tf.train.AdamOptimizer(learning_rate=2e-4).minimize(self.G_loss_vgg, 
+                                            global_step=self.global_step, var_list=self.g_vars)
 
         elif self.type == 'lsgan':
             #best after different tests
@@ -173,13 +147,15 @@ class CiGAN:
                                             var_list=self.g_vars,global_step=self.global_step) 
             self.D_solver = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.D_loss,
                                             var_list=self.d_vars,global_step=self.global_step)
+            self.VGG_solver = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.G_loss_vgg, 
+                                            global_step=self.global_step, var_list=self.g_vars)
         elif self.type == "mammo":
-            self.learn_rate = tf.train.exponential_decay(1e-4, self.global_step,
-                                                     750, 0.99, staircase=False)
-            self.G_solver = tf.train.AdamOptimizer(learning_rate=self.learn_rate).minimize(self.G_loss, 
+            self.G_solver = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(self.G_loss, 
                                             var_list=self.g_vars, global_step=self.global_step)
-            self.D_solver = tf.train.AdamOptimizer(learning_rate=self.learn_rate).minimize(self.D_loss, 
+            self.D_solver = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(self.D_loss, 
                                             var_list=self.d_vars, global_step=self.global_step)
+            self.VGG_solver = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(self.G_loss_vgg, 
+                                            global_step=self.global_step, var_list=self.g_vars)
         print("Solver {} has been configured".format(self.type))
     
     def set_new_optimizer(self, optimizer):
@@ -187,6 +163,8 @@ class CiGAN:
                                                var_list=self.g_vars,global_step=self.global_step)
         self.D_solver = optimizer.minimize(self.D_loss,
                                                 var_list=self.d_vars,global_step=self.global_step)
+        self.VGG_solver = optimizer.minimize(self.G_loss_vgg, 
+                                            global_step=self.global_step, var_list=self.g_vars)
     
     def build_model(self,batch_normalization = False):
          # Learning rate params
@@ -226,9 +204,9 @@ class CiGAN:
             # If using existing model
             if not self.new_model:
                 # Load the VGG loss trained model (model pretrain in model_wgan_vgg)
-                if self.load_vgg and tf.train.checkpoint_exists(models_dir + 'lsgan5.0e-05' + '_vgg'):
+                if self.load_vgg and tf.train.checkpoint_exists(models_dir + self.load_name + '_vgg'):
                     print('Loading vgg')
-                    self.g_saver.restore(self.sess, models_dir + 'lsgan5.0e-05' + '_vgg')
+                    self.g_saver.restore(self.sess, models_dir + self.load_name + '_vgg')
                 # Load the GAN loss trained model
                 elif self.load_name is not None and self.load_weights:
                     print('Loading model', self.load_name)
@@ -247,11 +225,9 @@ class CiGAN:
             # Number of iterations per epoch for each type of loss
             d_iters = 1
             g_iters = 1
-            boundary_iters = 1
             vgg_iters = 10
             
            #history -------
-            vgg_data = []
             d_data = []
             g_data = []
             #------------
@@ -264,8 +240,9 @@ class CiGAN:
                     VGG_loss_cur = self.train(self.sess, self.VGG_solver, self.G_loss_vgg, generator=data_generator, iters=100)
                     print('VGG loss', VGG_loss_cur)
                     self.validate(i, val_data_generator, self.sess)
-                    save(self.save_name + '_vgg', it, self.g_saver, self.sess)
-                    vgg_data.append([it,VGG_loss_cur])
+                    if self.save_model:
+                        save(self.save_name + '_vgg', it, self.g_saver, self.sess)
+                    
             else:
                 print('VGG Pretrained')
 
@@ -284,7 +261,7 @@ class CiGAN:
                     g_data.append([it,G_loss_cur])
                     print('========')
 
-                if it % 50 == 0:
+                if it % 100 == 0:
                     self.validate(it, val_data_generator, self.sess)
             
                 #self.save_loss(data = np.asarray([vgg_data,d_data,g_data]),legend = ['vgg','discriminator','generator'])
