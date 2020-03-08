@@ -15,19 +15,19 @@ def build_cigan(type_,save_name,vgg = True,save_model = False):
     # pretrain with VGG            
     train_vgg = vgg
     load_vgg = vgg
-
+    load_name = save_name
     return CiGAN(save_name, load_name, patch_size, epochs,batch_size, 
                   new_model, train_vgg=train_vgg, load_vgg=load_vgg,
                   load_weights=load_weights,l1_factor = l1_factor, type = type_,
                   save_model = save_model)
 
 
-def experiment_opt(type_,learning_rate,opt):
+def experiment_opt(type_,learning_rate,opt,vgg = True):
     data = []    
     for learn_rate in learning_rate:
-        name = "{}_{}_{:.1e}".format(type_,opt,learn_rate)
+        name = "{}_{}_{:.1e}{}".format(type_,opt,learn_rate,int(vgg))
         print("Begin : ", name)
-        model = build_cigan(type_,save_name)
+        model = build_cigan(type_,name,vgg = vgg)
         model.build_model(batch_normalization=True)
         
         if opt == "adam":
@@ -53,11 +53,28 @@ def experiment_opt(type_,learning_rate,opt):
     print("saved")
 
 if __name__ == '__main__':
-    exp = ["lsgan","mammo","dsgan"]
+    #1.
+    """
+    exp = ["lsgan","mammo"]
+    for loss in exp:
+        lr = [1e-5,5e-5,1e-4]
+        experiment_opt(loss,lr,"rms")   
+        experiment_opt(loss,lr,"adam")
+    """
+    #2.
+    """
+    exp = ["dcgan"]
     for loss in exp:
         lr = [1e-5,5e-5,1e-4]
         experiment_opt(loss,lr,"rms")   
         experiment_opt(loss,lr,"adam")  
+    """
+    #experimento no2 sin vggpre
+    exp = ["lsgan","mammo","dcgan"]
+    for loss in exp:
+        lr = [1e-5,5e-5,1e-4]
+        experiment_opt(loss,lr,"rms",vgg = False)   
+        experiment_opt(loss,lr,"adam",vgg = False)
     #end experiment
     
     
