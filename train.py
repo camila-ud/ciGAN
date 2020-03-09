@@ -44,6 +44,7 @@ class CiGAN:
     def vgg_loss(self):
         #Features extraction and build loss function VGG model
         #----------- Build VGG networks -----------------
+        
         vgg_real_c = build_vgg19(tf.multiply(self.input_real, 1 - self.input_mask))
         vgg_fake_c = build_vgg19(tf.multiply(self.fake_image, 1 - self.input_mask), reuse=True)
 
