@@ -25,7 +25,7 @@ def build_cigan(type_,save_name,vgg = True,save_model = False):
 def experiment_opt(type_,learning_rate,opt,vgg = True):
     data = []    
     for learn_rate in learning_rate:
-        name = "{}_{}_{:.1e}{}".format(type_,opt,learn_rate,int(vgg))
+        name = "{}_{}_{}_{:.1e}".format(type_,opt,int(vgg),learn_rate)
         print("Begin : ", name)
         model = build_cigan(type_,name,vgg = vgg)
         model.build_model(batch_normalization=True)
@@ -49,7 +49,7 @@ def experiment_opt(type_,learning_rate,opt,vgg = True):
     
     if not os.path.exists(directory):
         os.makedirs(directory)
-    np.savez_compressed("{}{}".format(directory,opt),loss = data)
+    np.savez_compressed("{}{}{}".format(directory,opt,int(vgg)),loss = data)
     print("saved")
 
 if __name__ == '__main__':
