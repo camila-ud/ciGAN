@@ -4,7 +4,7 @@ from train import *
 patch_size = 256
 #learn_rate = 1e-4
 batch_size = 8
-epochs =  4500
+#epochs =  4500
 l1_factor = 1200.0
 
 
@@ -70,12 +70,37 @@ if __name__ == '__main__':
         experiment_opt(loss,lr,"adam")  
     """
     #experimento no2 sin vggpre
+    """
     exp = ["lsgan","mammo","dcgan"]
     for loss in exp:
         lr = [1e-5,5e-5,1e-4]
         experiment_opt(loss,lr,"rms",vgg = False)   
         experiment_opt(loss,lr,"adam",vgg = False)
+    """
     #end experiment
+    data = []    
+    type_ = "lsgan"
+    opt = "rms"
+    vgg = False
+    learn_rate = 1e-5
+    epocs = 6000
+    
+    name = "{}_{}_{}_{:.1e}_msk".format(type_,opt,int(vgg),learn_rate)
+    print("Begin : ", name)
+    model = build_cigan(type_,name,vgg = vgg)
+    model.build_model(batch_normalization=True)
+    results = model.train_model()  
+    data.append(results)   
+        
+    data = np.stack(data)
+    #end experiment #end experiment
+    print("EXP {} is finished".format(type_))
+    directory = './results/' + type_ + '/'
+    
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    np.savez_compressed("{}{}{}mask".format(directory,opt,int(vgg)),loss = data)
+    print("saved")
     
     
     

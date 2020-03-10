@@ -81,7 +81,7 @@ class CiGAN:
             #(lsgan)
             # test n4 smooth 0.8
             self.G_loss = tf.reduce_mean(tf.nn.l2_loss(self.D_logits_fake - tf.ones_like(self.D_logits_fake))) 
-            D_loss_real = tf.reduce_mean(tf.nn.l2_loss(self.D_logits_real - tf.ones_like(self.D_logits_real))) 
+            D_loss_real = tf.reduce_mean(tf.nn.l2_loss(self.D_logits_real - tf.ones_like(self.D_logits_real)*0.9)) 
             D_loss_fake = tf.reduce_mean(tf.nn.l2_loss(self.D_logits_fake - tf.zeros_like(self.D_logits_fake))) 
             self.D_loss = D_loss_real + D_loss_fake
             
@@ -181,8 +181,8 @@ class CiGAN:
         self.fake_image = build_generator(self.input_x, self.input_mask,batch_normalization = batch_normalization)
 
         #discriminator
-        self.D_real, self.D_logits_real = build_discriminator(self.input_real)
-        self.D_fake, self.D_logits_fake = build_discriminator(self.fake_image,reuse=True)
+        self.D_real, self.D_logits_real = build_discriminator(self.input_real, self.input_mask)
+        self.D_fake, self.D_logits_fake = build_discriminator(self.fake_image, self.input_mask,reuse=True)
      
         #set training variables 
         self.t_vars = tf.trainable_variables()

@@ -17,7 +17,7 @@ from keras.regularizers import l2
 from keras.initializers import RandomNormal, glorot_uniform
 from keras import backend as K
 from keras.callbacks import CSVLogger
-from keras.layers import GlobalMaxPooling2D, GlobalAveragePooling2D, LeakyReLU
+from keras.layers import GlobalMaxPooling2D, GlobalAveragePooling2D, LeakyReLU, Lambda
 from keras.applications.resnet50 import ResNet50
 import scipy.misc as misc
 import scipy.io
@@ -58,10 +58,17 @@ def build_generator(input_x,input_mask,reuse=None,batch_normalization=False):
         print(net.shape, "g_lastconv_"+str(net.shape[1]))
         return output
 
-def build_discriminator(input_x,reuse=None):
+def build_discriminator(input_x,input_mask,reuse=None):
+    def upsample(x, shape):
+        return tf.image.resize_nearest_neighbor(x, (int(shape.value), int(shape.value)))
+
     with tf.variable_scope('dis',reuse=reuse):
-        weight_init = RandomNormal(mean=0., stddev=0.02)
-        x = Input(tensor=input_x)
+        weight_init = RandomNormal(mean=0., stddev=0.02)   
+        #add label
+        input_x = Input(tensor=input_x)
+        input_c = Input(tensor=input_mask)
+        c = input_c
+        x = input_x
         print("Building discriminator")
         numKernels = 32
         # the "lead in" layer
@@ -69,6 +76,10 @@ def build_discriminator(input_x,reuse=None):
                             kernel_initializer=weight_init)(x)
         print(x.shape)
         for i in range(1, 5):
+            upsampled_shape = (x.shape[1].value, x.shape[1].value, 1)
+            print(upsampled_shape)
+            upsampled = Lambda(upsample, arguments={'shape': x.shape[1]}, output_shape=upsampled_shape)(c)
+            x = concatenate([x, upsampled],axis=-1)
             x = Conv2D(int(numKernels*2**i), (3, 3), padding='same', 
                                 kernel_initializer=weight_init)(x)
             print(x.shape)
@@ -77,7 +88,7 @@ def build_discriminator(input_x,reuse=None):
 
         features = Flatten(name='d_flatten')(x)
         logits = Dense(1, activation='linear')(features)
-        output = tf.nn.sigmoid(logits)
+        output = tf.nn.sigmoid(logits)        
         return output,logits
 
 #functions to VGG model
