@@ -6,7 +6,7 @@ patch_size = 256
 batch_size = 8
 #epochs =  4500
 l1_factor = 1200.0
-epochs = 75000
+#epochs = 75000
 
 def build_cigan(type_,save_name,vgg = True,save_model = False, inside = True):        
     load_weights = False
@@ -58,7 +58,7 @@ def exp_no_vgg(type_,learn_rate,opt):
     data = []    
     vgg = False
     inside = False    
-    name = "{}_{}_{}_{:.1e}_not_in".format(type_,opt,int(vgg),learn_rate)
+    name = "{}_{}_{}_{:.1e}_not_in_pond".format(type_,opt,int(vgg),learn_rate)
     print("Begin : ", name)
     model = build_cigan(type_,name,vgg = vgg, inside = inside)
     model.build_model(batch_normalization=True)
@@ -82,7 +82,7 @@ def exp_no_vgg(type_,learn_rate,opt):
     
     if not os.path.exists(directory):
         os.makedirs(directory)
-    np.savez_compressed("{}{}{}_not_in_".format(directory,opt,int(vgg)),loss = data)
+    np.savez_compressed("{}{}{}_not_in_pond".format(directory,opt,int(vgg)),loss = data)
     print("saved")
     
 if __name__ == '__main__':
@@ -113,8 +113,9 @@ if __name__ == '__main__':
     #end experiment
      #experimento no4 sin vggpre
      #avant 1e-4 15000epochs
-    exp_no_vgg("lsgan",1e-5,"rms")    
+    #exp_no_vgg("lsgan",1e-5,"rms")    
     #exp 1e-4 1500epocs 
-    
+    epochs = 15000
+    exp_no_vgg("lsgan",1e-4,"rms") 
     
 
