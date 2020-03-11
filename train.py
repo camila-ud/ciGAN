@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 class CiGAN:
 
     def __init__(self, save_name,load_name,patch_size,num_iterations,
-                batch_size,new_model,train_vgg,load_vgg,load_weights,l1_factor,save_model,type = "mammo"):
+                batch_size,new_model,train_vgg,load_vgg,load_weights,l1_factor,
+                save_model,type = "lsgan",inside = True):
         self.save_name = save_name
         self.patch_size = patch_size
         self.load_name = load_name
@@ -31,6 +32,9 @@ class CiGAN:
         self.G_loss = self.D_loss = None
         self.G_solver = self.D_solver = self.G_loss_vgg = None
         self.VGG_solver = self.boundary_loss = self.boundary_solver = self.L1_loss = self.L1_solver = None
+        #juss VGG
+        self.inside = inside
+        
 
         # L1 and boundary loss params
         self.alpha = 0.95
@@ -70,12 +74,31 @@ class CiGAN:
             conv_str = 'pool' + str(i)
             G_loss_vgg += tf.reduce_mean(tf.abs(vgg_real[conv_str] - vgg_fake[conv_str]))
         return G_loss_vgg
+    
+    def vgg_loss_inside(self):
+        #Features extraction and build loss function VGG model       
+        #----------- Build VGG networks -----------------     
+        vgg_real = build_vgg19(tf.multiply(self.input_real, self.input_mask))
+        vgg_fake = build_vgg19(tf.multiply(self.fake_image, self.input_mask), reuse=True)
+        
+        #First layer
+        G_loss_vgg = tf.reduce_mean(tf.abs(vgg_real['input'] - vgg_fake['input']))
+        
+        for i in range(1, 4):
+            conv_str = 'pool' + str(i)
+            #get pool
+            G_loss_vgg += (self.l1_factor)*tf.reduce_mean(tf.abs(vgg_real[conv_str] - vgg_fake[conv_str]))
+        return G_loss_vgg
 
 
     def set_loss_function(self):
         #method for testing different loss functions
         #loss function pretraining
-        self.G_loss_vgg = self.vgg_loss() 
+        if self.inside:
+            self.G_loss_vgg = self.vgg_loss() 
+        else:
+            print("VGG just inside")
+            self.G_loss_vgg = self.vgg_loss_inside()
         
         if self.type =="lsgan":
             #(lsgan)
@@ -263,7 +286,13 @@ class CiGAN:
                     print('========')
 
                 if it % 100 == 0:
-                    self.validate(it, val_data_generator, self.sess)
+                    #random or not, test with id 10
+                    #___random
+                    #self.validate(it, val_data_generator, self.sess)
+                    #___id choix 10
+                    self.validate(it, val_data_generator , self.sess, 
+                                  randn = False, id_choix = 10)
+                    print("end:",self.num_iterations -it)
             
                 #self.save_loss(data = np.asarray([vgg_data,d_data,g_data]),legend = ['vgg','discriminator','generator'])
             if self.save_model:
@@ -413,9 +442,13 @@ class CiGAN:
         else:
             return np.mean(loss_avg)
 
-    def validate(self, i, data_generator, sess):
+    def validate(self, i, data_generator, sess,randn = True, id_choix = 0):
         print('Validating', i)
-        data_X = next(data_generator)
+        if randn:
+            data_X = next(data_generator)
+        else:
+            data_X = generate_patch_id(id_choix)
+            
         data_x = data_X[0:1, :, :, 0:1]
         data_mask = data_X[0:1, :, :, 1:2]
         data_real = data_X[0:1, :, :, 2:3]

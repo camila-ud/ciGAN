@@ -65,6 +65,33 @@ def generate_cpatches(nsamples, patches_path ='./patches.npz'):
         shuffle_idx = np.random.choice(len(X_), len(X_), replace=False)
         yield X_[shuffle_idx]
 
+     
+    
+def generate_patch_id(i, patches_path ='./patches.npz'):
+    #generate a image with an id
+    X_masks = np.load(patches_path)['x_mask']
+    X_reals = np.load(patches_path)['x_real']
+    
+    X_ = []
+    X_mask = X_masks[i].reshape((patch_size, patch_size))
+    X_real = normalize(X_reals[i].reshape((patch_size, patch_size)))
+
+    X_rand = np.random.uniform(0, 1, X_mask.shape)*X_mask
+    X_corrupt = (np.multiply(X_real, np.logical_not(X_mask).astype(int))+X_rand)
+    boundary = np.multiply(np.invert(morph.binary_erosion(X_mask)), X_mask)
+    X_boundary = normalize(filters.gaussian_filter(255.0*boundary,10)).reshape((patch_size, patch_size, 1))
+
+    X_combined = np.concatenate((X_corrupt.reshape(patch_size, patch_size, 1), 
+                                    X_mask.reshape(patch_size, patch_size, 1),
+                                    X_real.reshape(patch_size, patch_size, 1),
+                                    X_boundary), 
+                                    axis=-1)
+    X_.append(X_combined)
+    X_ = np.stack(X_)
+    print("Patch id {} is generated, {}".format(i,X_.shape))
+    return X_
+    
+
 def generate_nc_patches(nsamples, patches_path ='./patches.npz',
                         cancer_path = './non_cancer_patches.npz'):
     print(nsamples)
