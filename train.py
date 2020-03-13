@@ -12,7 +12,7 @@ class CiGAN:
 
     def __init__(self, save_name,load_name,patch_size,num_iterations,
                 batch_size,new_model,train_vgg,load_vgg,load_weights,l1_factor,
-                save_model,type = "lsgan",inside = True):
+                save_model,type = "lsgan",inside = True,learn_rate = 1e-4):
         self.save_name = save_name
         self.patch_size = patch_size
         self.load_name = load_name
@@ -23,6 +23,7 @@ class CiGAN:
         self.train_vgg = train_vgg
         self.load_vgg = load_vgg
         self.load_weights = load_weights
+        self.learn_rate = learn_rate
         
         self.input_x = self.input_mask = self.input_real = self.input_boundary = None
         self.fake_image = self.global_step = None
@@ -167,11 +168,11 @@ class CiGAN:
 
         elif self.type == 'lsgan':
             #best after different tests
-            self.G_solver = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.G_loss,
+            self.G_solver = tf.train.RMSPropOptimizer(learning_rate=self.learn_rate).minimize(self.G_loss,
                                             var_list=self.g_vars,global_step=self.global_step) 
-            self.D_solver = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.D_loss,
+            self.D_solver = tf.train.RMSPropOptimizer(learning_rate=self.learn_rate).minimize(self.D_loss,
                                             var_list=self.d_vars,global_step=self.global_step)
-            self.VGG_solver = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.G_loss_vgg, 
+            self.VGG_solver = tf.train.RMSPropOptimizer(learning_rate=self.learn_rate).minimize(self.G_loss_vgg, 
                                             global_step=self.global_step, var_list=self.g_vars)
         elif self.type == "mammo":
             self.G_solver = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(self.G_loss, 
@@ -359,6 +360,7 @@ class CiGAN:
             self.d_saver.restore(self.sess, models_dir + self.load_name)
             generator_syn =  generate_cpatches(batch_size)
             self.validate(1, generator_syn, self.sess)
+        
 
     def synthesis(self,i):
         with tf.Session() as self.sess:
@@ -366,7 +368,7 @@ class CiGAN:
             self.g_saver.restore(self.sess, models_dir + self.load_name)
             self.d_saver.restore(self.sess, models_dir + self.load_name)
             
-            generator_syn = generate_nc_patches(batch_size)
+            generator_syn = generate_nc_patches(1)
             
             data_X  = next(generator_syn)
             data_x = data_X[0:1, :, :, 0:1]
@@ -387,6 +389,7 @@ class CiGAN:
                 os.makedirs(directory)
             print(np.unique(pred_img))
             scipy.misc.toimage(img, cmin=0.0, cmax=1.0).save(directory + self.save_name + '_' + str(self.patch_size) + '_' + str(i) + '.png')
+        
 
     def synthesize_dataset(self, num, batch_size=batch_size):
         num = int(num)
@@ -415,8 +418,12 @@ class CiGAN:
                 X_train[i] = pred_img
 
             X_train = X_train.reshape((-1, self.patch_size, self.patch_size, 1))
-            np.savez_compressed('./samples_sinthesizes', samples = X_train)
+            directory = './synthesis/'
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            np.savez_compressed('{}samples_sinthesizes{}'.format(directory,num), samples = X_train)
             print("samples_generated")
+        
 
     def train(self, sess, solver, loss, generator, step=0, iters=10, return_acc=False):
         loss_avg = []
