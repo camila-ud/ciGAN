@@ -285,15 +285,19 @@ class CiGAN:
                     g_data.append([it,G_loss_cur])
                     print('========')
 
-                if it % 100 == 0:
+                if it % 100 == 0 and it < 5000:
                     #random or not, test with id 10
                     #___random
                     #self.validate(it, val_data_generator, self.sess)
                     #___id choix 10
                     self.validate(it, val_data_generator , self.sess, 
-                                  randn = False, id_choix = 10)
+                                  randn = False, id_choix = 20)
                     print("end:",self.num_iterations -it)
-            
+                elif it % 3500 == 0 :
+                    self.validate(it, val_data_generator , self.sess, 
+                                  randn = False, id_choix = 20)
+                    print("end:",self.num_iterations -it)
+                    
                 #self.save_loss(data = np.asarray([vgg_data,d_data,g_data]),legend = ['vgg','discriminator','generator'])
             if self.save_model:
                 print("Saving model")
