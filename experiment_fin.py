@@ -102,7 +102,7 @@ if __name__ == '__main__':
         experiment_opt(loss,lr,"rms")   
         experiment_opt(loss,lr,"adam")  
     """
-    #experimento no2 sin vggpre
+    #experimento no2 sin vggpretrained
     """
     exp = ["lsgan","mammo","dcgan"]
     for loss in exp:
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     #exp_no_vgg("lsgan",1e-4,"rms") 
     #same test 30000 epocs
     #epochs = 30000
-    #exp_no_vgg("lsgan",1e-4,"rms")
+    #exp_no_vgg("lsgan",1e-4,"rms") #modele final
     epochs = 60000
     exp_no_vgg("lsgan",1e-4,"rms")
     
